@@ -19,9 +19,11 @@ mongoose.connect(process.env.MONGODB_URI);
 
 const userRouter = require("./routes/user");
 const gameRouter = require("./routes/game");
+const candidateRouter = require("./routes/candidate");
 
 app.use("/user", userRouter);
 app.use("/game", gameRouter);
+app.use("/candidate", candidateRouter);
 
 app.all("*", (req, res) => {
   console.log();

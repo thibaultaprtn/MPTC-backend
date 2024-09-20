@@ -14,7 +14,7 @@ const Candidate = mongoose.model("Candidate", {
       week: Number,
     },
   ],
-  total_points: Number,
+  total_points: { type: Number, default: 0 },
 });
 
 module.exports = Candidate;
