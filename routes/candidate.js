@@ -25,8 +25,9 @@ router.post(
     try {
       // console.log(req.headers.adminheader);
       // console.log(req.headers.adminheader === process.env.ADMIN_ID);
-      const { name, description, performances } = req.body;
+      const { surname, name, description, performances } = req.body;
       let candidate = new Candidate({
+        can_surname: surname,
         can_name: name,
         can_description: description,
         performances: performances,

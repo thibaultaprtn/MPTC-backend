@@ -6,16 +6,16 @@ const Game = mongoose.model("Game", {
   //   rank: Number,
   nb_teams: Number,
   nb_candidates_team: { type: Number, default: 4 },
-  round: Number,
+  round: { type: Number, default: 1 },
   launchable: { type: Boolean, default: false },
   launched: { type: Boolean, default: false },
   available_candidates: [
-    {
-      candidate_id: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate" },
-      //   A voir si on accède aux données dans le front via un populate
-      //   candidate_name: String,
-      //   candidate_pic: String,
-    },
+    // {
+    //   candidate_id: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate" },
+    //   //   A voir si on accède aux données dans le front via un populate
+    //   //   candidate_name: String,
+    //   //   candidate_pic: String,
+    // },
   ],
   team: [
     {

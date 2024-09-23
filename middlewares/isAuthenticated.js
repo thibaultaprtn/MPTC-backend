@@ -1,6 +1,7 @@
 const admin = require("../config/firebase-config");
 
 const isAuthenticated = async (req, res, next) => {
+  // console.log(req.headers.authorization, req.headers.email);
   if (!req.headers.authorization || !req.headers.email) {
     return res.status(401).json({ message: "Unauthorized access" });
   } else {
