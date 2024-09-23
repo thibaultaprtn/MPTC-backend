@@ -57,6 +57,10 @@ const Game = mongoose.model("Game", {
       ],
     },
   ],
+  details: { type: Array, default: [] },
+  additionnal_1: { type: Array, default: [] },
+  additionnal_2: { type: Array, default: [] },
+  additionnal_3: { type: Array, default: [] },
 });
 
 module.exports = Game;

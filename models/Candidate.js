@@ -15,6 +15,10 @@ const Candidate = mongoose.model("Candidate", {
     },
   ],
   total_points: { type: Number, default: 0 },
+  details: { type: Array, default: [] },
+  additionnal_1: { type: Array, default: [] },
+  additionnal_2: { type: Array, default: [] },
+  additionnal_3: { type: Array, default: [] },
 });
 
 module.exports = Candidate;

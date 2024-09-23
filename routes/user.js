@@ -1,12 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const fileUpload = require("express-fileupload");
+const isAuthenticated = require("../middlewares/isAuthenticated");
 
 const User = require("../models/User");
 
-router.get("/idfromemail", async (req, res) => {
+router.get("/idfromemail", isAuthenticated, async (req, res) => {
+  if (req.headers.email !== req.decodeValue.email) {
+    console.log(
+      "Le token fournit ne correspond pas à l'adresse mail communiquée pour retrieve des datas"
+    );
+    return res.json({
+      message:
+        "Le token fournit ne correspond pas à l'adresse mail communiquée pour retrieve des datas",
+    });
+  }
+
   try {
-    let { _id } = await User.findOne({ email: req.query.email });
+    let { _id } = await User.findOne({ email: req.headers.email });
     // console.log("_id du user", _id.valueOf());
     // console.log("id de l'admin", process.env.ADMIN_ID);
     res.json({
@@ -18,7 +29,18 @@ router.get("/idfromemail", async (req, res) => {
   }
 });
 
+//Pas besoin de sécuriser cette route car elle sert uniquement à indiquer si les username et emails ont déjà été attribués.
+
 router.get("/attributeduserdetails", async (req, res) => {
+  // if (req.query.email !== req.decodeValue.email) {
+  //   console.log(
+  //     "Le token fournit ne correspond pas à l'adresse mail communiquée pour retrieve des datas"
+  //   );
+  //   return res.json({
+  //     message:
+  //       "Le token fournit ne correspond pas à l'adresse mail communiquée pour retrieve des datas",
+  //   });
+  // }
   try {
     // console.log(req.query.username);
     // console.log(req.query.email);
