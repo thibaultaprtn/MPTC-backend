@@ -24,20 +24,17 @@ const Game = mongoose.model("Game", {
       rank: Number,
       full: Boolean, //Stock si la brigade est au complet
       users: [
-        {
-          user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-          //   A voir si on accède aux données dans le front via un populate
-          //   user_name: String,
-          //   user_pic: String,
-        },
+        { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        //   A voir si on accède aux données dans le front via un populate
+        //   user_name: String,
+        //   user_pic: String,
       ],
       points: { type: Number, default: 0 },
       candidates: [
         {
-          candidate_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Candidate",
-          },
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Candidate",
+
           //   A voir si on accède aux données dans le front via un populate
           //   candidate_name: String,
           //   candidate_pic: String,

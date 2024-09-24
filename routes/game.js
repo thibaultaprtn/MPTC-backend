@@ -59,19 +59,36 @@ router.post("/create", isAuthenticated, async (req, res) => {
 //Route permettant à un utilisateur de récupérer les infos d'une partie dans l'optique de la rejoindre. Une deuxième requête sera nécessaire pour rejoindre définitevement la partie.
 router.get("/joinable", isAuthenticated, async (req, res) => {
   try {
+    if (!req.query.game_id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res
+        .status(400)
+        .json({ message: "L'Id communiqué n'est pas au bon format" });
+    }
+
+    const user = await User.findById(req.query.user_id);
+    if (user) {
+      if (user.games.includes(req.query.game_id)) {
+        return res
+          .status(400)
+          .json({ message: "L'utilisateur a déjà rejoint la partie" });
+      }
+    }
     // console.log(req);
-    const game = await Game.findById(req.query.game_id);
+    const game = await Game.findById(req.query.game_id).populate({
+      path: "team",
+      populate: {
+        path: "users",
+        model: "User",
+      },
+    });
+
     // console.log(game);
     if (game) {
-      res
-        .status(200)
-        .json({ message: "Vous pouvez rejoindre la partie", game: game });
+      res.status(200).json(game);
     } else {
-      res
-        .status(400)
-        .json({
-          message: "L'id communiqué ne correspond à aucune partie joignable",
-        });
+      res.status(400).json({
+        message: "L'id communiqué ne correspond à aucune partie joignable",
+      });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -85,34 +102,54 @@ router.get("/list", isAuthenticated, async (req, res) => {
   // console.log("gamelist user", user.games);
   let gameslist = [];
   let user_team_number = {};
-  for (let i = 0; i < user.games.length; i++) {
-    const response = await Game.findById(user.games[i].toString());
-    // console.log(typeof response);
-    // const response2 = { ...response };
-    // const response3 = response2._doc;
-    // console.log(response3);
-    for (let j = 0; j < response.team.length; j++) {
-      // console.log("j", j);
-      // console.log(response.team[j].users.length);
-      if (response.team[j].users.length >= 1) {
-        // console.log(response.team[j].users);
-        for (let k = 0; k < response.team[j].users.length; k++) {
-          // console.log(response.team[j].users[k]._id);
-          // console.log(
-          //   response.team[j].users[k]._id.toString() === req.query.user_id,
-          //   j
-          // );
-          if (response.team[j].users[k]._id.toString() === req.query.user_id) {
-            //response.user_team_number = j + 1;
-            user_team_number[response._id] = j + 1;
-            // console.log(response);
+  if (user.games) {
+    for (let i = 0; i < user.games.length; i++) {
+      const response = await Game.findById(user.games[i].toString()).populate([
+        {
+          path: "team",
+          populate: {
+            path: "users",
+            model: "User",
+          },
+        },
+        {
+          path: "team",
+          populate: {
+            path: "candidates",
+            model: "Candidate",
+          },
+        },
+      ]);
+
+      // console.log(typeof response);
+      // const response2 = { ...response };
+      // const response3 = response2._doc;
+      // console.log(response3);
+      for (let j = 0; j < response.team.length; j++) {
+        // console.log("j", j);
+        // console.log(response.team[j].users.length);
+        if (response.team[j].users.length >= 1) {
+          // console.log(response.team[j].users);
+          for (let k = 0; k < response.team[j].users.length; k++) {
+            // console.log(response.team[j].users[k]._id);
+            // console.log(
+            //   response.team[j].users[k]._id.toString() === req.query.user_id,
+            //   j
+            // );
+            if (
+              response.team[j].users[k]._id.toString() === req.query.user_id
+            ) {
+              //response.user_team_number = j + 1;
+              user_team_number[response._id] = j + 1;
+              // console.log(response);
+            }
           }
         }
       }
+      // console.log(response);
+      // console.log(response);
+      gameslist.push(response);
     }
-    // console.log(response);
-    // console.log(response);
-    gameslist.push(response);
   }
   // console.log(tab2);
   res.json({ gameslist, user_team_number });
