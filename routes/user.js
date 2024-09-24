@@ -5,6 +5,21 @@ const isAuthenticated = require("../middlewares/isAuthenticated");
 
 const User = require("../models/User");
 
+router.get("/", isAuthenticated, async (req, res) => {
+  try {
+    const user = await User.findById(req.query.user_id);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res
+        .status(400)
+        .json({ message: "l'Id ne correspond à aucun utilisateur" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get("/idfromemail", isAuthenticated, async (req, res) => {
   if (req.headers.email !== req.decodeValue.email) {
     console.log(
