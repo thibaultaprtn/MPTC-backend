@@ -95,14 +95,38 @@ router.get("/joinable", isAuthenticated, async (req, res) => {
   }
 });
 
+//Route permettant de rejoindre une équipe
+router.put("/join", isAuthenticated, async (req, res) => {
+  // console.log("utilisateur bien authentifié avant de rejoindre une partie");
+  try {
+    // console.log(req.headers);
+    // console.log(req.body);
+    const { game_id, team_number, user_id } = req.body;
+    const game = await Game.findById(game_id);
+    const user = await User.findById(user_id);
+    // console.log(game);
+    console.log(user);
+    user.games.push(game_id);
+    await user.save();
+    game.team[team_number - 1].users.push(user_id);
+    await game.save();
+    res.status(200).json({
+      message: `L'utilisateur a bien été rajouté à l'équipe ${team_number} de la partie ${game.game_name}`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 //Route permettant de récupérer la liste détaillée des parties d'un utilisateur ainsi que le numéro de son équipe pour chacune de ces parties
 router.get("/list", isAuthenticated, async (req, res) => {
+  // console.log(req.query.user_id);
   const user = await User.findById(req.query.user_id);
-
+  // console.log("user dans la requête list", user);
   // console.log("gamelist user", user.games);
   let gameslist = [];
   let user_team_number = {};
-  if (user.games) {
+  if (user.games.length >= 1) {
     for (let i = 0; i < user.games.length; i++) {
       const response = await Game.findById(user.games[i].toString()).populate([
         {
