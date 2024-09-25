@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const isAuthenticated = require("../middlewares/isAuthenticated");
+const candidateAttribution = require("../middlewares/candidateAttribution");
 
 const Game = require("../models/Game");
 const User = require("../models/User");
@@ -224,6 +225,41 @@ router.put("/join", isAuthenticated, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+router.put(
+  "/placebet",
+  isAuthenticated,
+  async (req, res, next) => {
+    try {
+      // console.log(req.body);
+      //req.body.bets / req.body.user_id / req.body.game_id
+      // console.log(req.body.bets);
+      const game = await Game.findById(req.body.game_id);
+      // console.log(game.team[1]);
+      let team_index = null;
+      for (let i = 0; i < game.team.length; i++) {
+        // console.log(i, game);
+        const goodteam = game.team[i].users.find(
+          (elem) => elem.toString() === req.body.user_id
+        );
+        if (goodteam) {
+          team_index = Number(i);
+        }
+      }
+      console.log("team_index", team_index);
+      if (team_index || team_index === 0) {
+        game.team[team_index].bet.push(req.body.bets);
+        game.team[team_index].draft = true;
+        // console.log(game);
+      }
+      await game.save();
+      next();
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  candidateAttribution
+);
 
 //Route permettant de créer une partie
 router.post("/create", isAuthenticated, async (req, res) => {

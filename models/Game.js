@@ -43,15 +43,16 @@ const Game = mongoose.model("Game", {
       ],
       actions: { type: Array, default: [] },
       draft: Boolean, //Stock si des enchères ont été placées
-      bet: [
-        {
-          candidate_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Candidate",
-          },
-          value: Number,
-        },
-      ],
+      bet: { type: Array, default: [] },
+      // [
+      //   {
+      //     candidate_id: {
+      //       type: mongoose.Schema.Types.ObjectId,
+      //       ref: "Candidate",
+      //     },
+      //     value: Number,
+      //   },
+      // ],
     },
   ],
   details: { type: Array, default: [] },
