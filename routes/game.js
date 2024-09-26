@@ -7,6 +7,56 @@ const Game = require("../models/Game");
 const User = require("../models/User");
 const Candidate = require("../models/Candidate");
 
+//Route permettant de créer une partie
+router.post("/create", isAuthenticated, async (req, res) => {
+  try {
+    console.log(req.body, req.headers);
+    let { game_name, admin_id, nb_teams, nb_candidates_team } = req.body;
+    // console.log(typeof nb_teams, typeof nb_candidates_team);
+
+    const candidates = await Candidate.find();
+
+    let newGame = new Game({
+      game_name: game_name,
+      admin_id: admin_id,
+      nb_teams: Number(nb_teams),
+      nb_candidates_team: Number(nb_candidates_team),
+      available_candidates: candidates,
+    });
+
+    for (let i = 1; i <= nb_teams; i++) {
+      newGame.team.push({
+        team_number: Number(i),
+        team_name: "",
+        rank: 1,
+        full: false,
+        users: [],
+        points: 0,
+        candidates: [],
+        actions: {},
+        draft: false,
+        bet: [],
+      });
+    }
+
+    newGame.team[0].users.push(admin_id);
+    //Il faut créer les différentes team
+    //Il faut importer les candidats disponibles
+
+    await newGame.save();
+    // console.log("Newgame details", newGame);
+    const user = await User.findById(admin_id);
+    user.games.push(newGame._id);
+    await user.save();
+    // console.log("user details", user);
+    res
+      .status(200)
+      .json({ message: `La partie ${game_name} a bien été créée.` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get("/dashboard", isAuthenticated, async (req, res) => {
   // console.log(req);
   try {
@@ -77,6 +127,21 @@ router.get("/dashboard", isAuthenticated, async (req, res) => {
         // ]);
         res.status(200).json(game);
       } else {
+        let index = null;
+        console.log("un premier test");
+        for (let j = 0; j < game.team.length; j++) {
+          console.log(j);
+          console.log(req.query.user_id);
+          const found = game.team[j].users.find((elem) => {
+            // console.log("ca marche", elem._id.toString());
+            return elem._id.toString() === req.query.user_id;
+          });
+          console.log("found", found);
+          if (found) {
+            index = Number(j);
+            game.details.push({ user_team_index: index });
+          }
+        }
         // await game.populate([
         //   {
         //     path: "team",
@@ -246,10 +311,14 @@ router.put(
           team_index = Number(i);
         }
       }
+      //Rajouter une sécurité pour éviter de placer plein de bets
       console.log("team_index", team_index);
       if (team_index || team_index === 0) {
-        game.team[team_index].bet.push(req.body.bets);
-        game.team[team_index].draft = true;
+        if (game.team[team_index].bet.length < game.round) {
+          console.log(game.team[team_index].bet.length, game.round);
+          game.team[team_index].bet.push(req.body.bets);
+          game.team[team_index].draft = true;
+        }
         // console.log(game);
       }
       await game.save();
@@ -261,51 +330,21 @@ router.put(
   candidateAttribution
 );
 
-//Route permettant de créer une partie
-router.post("/create", isAuthenticated, async (req, res) => {
+router.put("/launch", isAuthenticated, async (req, res) => {
   try {
-    console.log(req.body, req.headers);
-    let { game_name, admin_id, nb_teams, nb_candidates_team } = req.body;
-    // console.log(typeof nb_teams, typeof nb_candidates_team);
-
-    const candidates = await Candidate.find();
-
-    let newGame = new Game({
-      game_name: game_name,
-      admin_id: admin_id,
-      nb_teams: Number(nb_teams),
-      nb_candidates_team: Number(nb_candidates_team),
-      available_candidates: candidates,
-    });
-
-    for (let i = 1; i <= nb_teams; i++) {
-      newGame.team.push({
-        team_number: Number(i),
-        team_name: "",
-        rank: 1,
-        full: false,
-        users: [],
-        points: 0,
-        candidates: [],
-        actions: {},
-        draft: false,
-        bet: [],
-      });
+    const { game_id, user_id } = req.body;
+    console.log(req.body);
+    const game = await Game.findById(game_id);
+    if (game) {
+      console.log(game.admin_id);
+      if (game.admin_id.toString() !== user_id) {
+        res.status(400).json({ message: "Unauthorized" });
+      } else {
+        game.launched = true;
+        await game.save();
+        res.status(200).json(game);
+      }
     }
-
-    newGame.team[0].users.push(admin_id);
-    //Il faut créer les différentes team
-    //Il faut importer les candidats disponibles
-
-    await newGame.save();
-    // console.log("Newgame details", newGame);
-    const user = await User.findById(admin_id);
-    user.games.push(newGame._id);
-    await user.save();
-    // console.log("user details", user);
-    res
-      .status(200)
-      .json({ message: `La partie ${game_name} a bien été créée.` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

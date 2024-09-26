@@ -4,6 +4,7 @@ const Game = mongoose.model("Game", {
   game_name: String,
   admin_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   //   rank: Number,
+  // user_team_number: Number,
   nb_teams: Number,
   nb_candidates_team: { type: Number, default: 4 },
   round: { type: Number, default: 1 },
